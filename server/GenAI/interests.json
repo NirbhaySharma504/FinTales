@@ -1,0 +1,32 @@
+{
+  "success": true,
+  "message": "User profile retrieved",
+  "data": {
+    "user": {
+      "preferences": {
+        "interests": {
+          "Music Artists": [
+            "Drake",
+            "The Weeknd"
+          ],
+          "Movies/Series": [
+            "Stranger Things"
+          ],
+          "Comics & Anime": [
+            "Demon Slayer"
+          ],
+          "Art Style": [],
+          "Hobbies/Activities": [],
+          "Spending Habits": []
+        },
+        "difficulty": "beginner",
+        "notifications": true
+      },
+      "_id": "6811eec79a991bfc991f15be",
+      "name": "Hades",
+      "email": "emailnirbhaysharma1@gmail.com",
+      "profilePicture": "https://lh3.googleusercontent.com/a/ACg8ocKHaJA4lCY-pmbuqt6uptL-hQ5Ii2GPtMuPloZDQAZShzGuBWA=s96-c",
+      "xp": 1050
+    }
+  }
+}

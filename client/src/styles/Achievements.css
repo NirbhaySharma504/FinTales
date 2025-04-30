@@ -1,0 +1,302 @@
+/* Main container */
+.minted-text {
+  color: #27ae60;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 5px 10px;
+  background-color: #e7f5ed;
+  border-radius: 4px;
+  display: inline-block;
+}
+.achievements-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  /* Add this new class to your existing CSS */
+
+.greyscale-image {
+  filter: grayscale(100%);
+  opacity: 0.9;
+  transition: filter 0.3s ease;
+}
+
+/* Optional: Add hover effect to show preview of full color on hover */
+.greyscale-image:hover {
+  filter: grayscale(50%);
+}
+
+/* Ensure minted NFTs are vibrant */
+.minted .nft-image {
+  filter: none;
+  opacity: 1;
+}
+
+/* Removed the minted-overlay style or make it display: none */
+.minted-overlay {
+  display: none;
+}
+  
+  .achievements-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .achievements-description {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 20px;
+  }
+  
+  .section-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  /* NFT grid layout */
+  .nft-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+  }
+  
+  /* NFT Card styling */
+  .nft-card {
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 320px; /* Increased width */
+    height: 500px; /* Increased height */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .nft-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* NFT Image container */
+  .nft-image-container {
+    position: relative;
+    width: 100%;
+    height: 320px; /* Square image container */
+    overflow: hidden;
+  }
+  
+  .nft-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures images are scaled proportionally */
+    transition: filter 0.3s ease;
+  }
+  
+  .locked-image {
+    filter: grayscale(70%) brightness(60%);
+  }
+  
+  .lock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    text-align: center;
+  }
+  
+  .lock-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+  }
+  
+  .xp-required {
+    font-size: 0.9rem;
+    font-weight: 500;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 5px 10px;
+    border-radius: 20px;
+  }
+  
+  .minted-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(39, 174, 96, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .minted-badge {
+    background: #fff;
+    color: #27ae60;
+    font-weight: bold;
+    padding: 8px 15px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    font-size: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* NFT Content */
+  .nft-content {
+    padding: 15px;
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .nft-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  
+  .nft-description {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 20px;
+    flex: 1;
+  }
+  
+  .nft-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+  }
+  
+  .xp-badge {
+    background-color: #f0f0f0;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #444;
+  }
+  
+  .mint-button {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+  }
+  
+  .mint-button:hover {
+    background: #219653;
+  }
+  
+  .mint-button.disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .block-explorer-link {
+    color: #2980b9;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #2980b9;
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  
+  .block-explorer-link:hover {
+    background: #2980b9;
+    color: white;
+  }
+  
+  .locked-text {
+    color: #888;
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+  
+  .mint-status, .mint-error {
+    margin-top: 15px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  
+  .mint-status {
+    background-color: #e7f5ed;
+    color: #27ae60;
+  }
+  
+  .mint-error {
+    background-color: #fde8e8;
+    color: #e53e3e;
+  }
+  
+  .wallet-button {
+    min-width: 180px;
+    height: 45px;
+  }
+  
+  /* Media queries for responsive layout */
+  @media (max-width: 768px) {
+    .nft-grid {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 15px;
+    }
+    
+    .nft-image-container {
+      height: 280px; /* Square image container for tablets */
+    }
+
+    .nft-card {
+      width: 280px; /* Adjusted width for tablets */
+      height: 450px; /* Adjusted height for tablets */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .nft-grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+    
+    .nft-image-container {
+      height: 240px; /* Square image container for mobile devices */
+    }
+    
+    .nft-content {
+      padding: 15px;
+    }
+    
+    .nft-title {
+      font-size: 1rem;
+    }
+
+    .nft-card {
+      width: 240px; /* Adjusted width for mobile devices */
+      height: 400px; /* Adjusted height for mobile devices */
+    }
+  }

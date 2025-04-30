@@ -1,0 +1,42 @@
+coinquest-backend/
+├── config/
+│   ├── db.js                 # MongoDB connection
+│   └── firebase-config.js    # Firebase auth configuration
+├── controllers/
+│   ├── authController.js     # Authentication logic
+│   ├── courseController.js   # Course management
+│   ├── lessonController.js   # Lesson management
+│   ├── storyController.js    # Story generation
+│   ├── aiController.js       # AI integration
+│   ├── imageController.js    # Image generation
+│   └── nftController.js      # NFT minting and management
+├── middleware/
+│   ├── authMiddleware.js     # Authentication verification
+│   └── errorMiddleware.js    # Error handling
+├── models/
+│   ├── userModel.js          # User schema
+│   ├── courseModel.js        # Course schema
+│   ├── lessonModel.js        # Lesson schema
+│   ├── storyModel.js         # Story schema
+│   ├── imageModel.js         # Image schema
+│   └── nftModel.js           # NFT schema
+├── routes/
+│   ├── authRoutes.js         # Auth endpoints
+│   ├── courseRoutes.js       # Course endpoints
+│   ├── lessonRoutes.js       # Lesson endpoints
+│   ├── storyRoutes.js        # Story endpoints
+│   ├── aiRoutes.js           # AI endpoints
+│   ├── imageRoutes.js        # Image endpoints
+│   └── nftRoutes.js          # NFT endpoints
+├── services/
+│   ├── aiService.js          # Modal AI integration
+│   ├── imageService.js       # DALL-E integration
+│   └── nftService.js         # Verbwire integration
+├── utils/
+│   ├── errorHandler.js       # Error handling utilities
+│   └── apiResponse.js        # Response formatting
+├── .env                      # Environment variables
+├── .gitignore
+├── app.js                    # Express app setup
+├── package.json
+└── server.js                 # Server entry point

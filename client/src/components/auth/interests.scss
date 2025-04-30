@@ -1,0 +1,167 @@
+/* interests.scss */
+
+.interests-container {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+    background-color: #f9fafe;
+  }
+  
+  .interests-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+  }
+  
+  .interests-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #37474f;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+  
+  .interests-subtitle {
+    font-size: 1rem;
+    color: #607d8b;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .category-container {
+    margin-bottom: 2rem;
+  }
+  
+  .category-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #455a64;
+    margin-bottom: 0.5rem;
+  }
+  
+  .input-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+  .interest-input {
+    flex-grow: 1;
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    border-radius: 12px;
+    border: 1px solid #cfd8dc;
+    transition: border-color 0.2s ease;
+  
+    &:focus {
+      border-color: #4caf50;
+      outline: none;
+    }
+  }
+  
+  .add-button {
+    background-color: #4caf50;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  
+    &:hover {
+      background-color: #43a047;
+    }
+  
+    &.disabled {
+      background-color: #c8e6c9;
+      cursor: not-allowed;
+    }
+  }
+  
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+    gap: 0.5rem;
+  }
+  
+  .tag {
+    background-color: #e0f2f1;
+    color: #004d40;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .remove-button {
+    background: none;
+    border: none;
+    color: #d32f2f;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+  
+  .max-limit-message {
+    font-size: 0.85rem;
+    color: #ff5722;
+    margin-top: 0.5rem;
+  }
+  
+  .save-button {
+    margin-top: 2rem;
+    background-color: #1976d2;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 14px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  
+    &:hover {
+      background-color: #1565c0;
+    }
+  
+    &:disabled {
+      background-color: #90caf9;
+      cursor: not-allowed;
+    }
+  }
+  
+  /* Responsive */
+  @media (max-width: 600px) {
+    .interests-card {
+      padding: 1.5rem;
+    }
+  
+    .input-container {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .add-button {
+      width: 100%;
+    }
+  
+    .interest-input {
+      width: 100%;
+    }
+  
+    .save-button {
+      font-size: 0.95rem;
+    }
+  }
+  
