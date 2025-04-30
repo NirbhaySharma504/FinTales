@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
   console.log(`
   ========================================
-   CoinQuest API Server
+   FinTales API Server
   ========================================
    🚀 Server running in ${process.env.NODE_ENV} mode
    🔗 API available at http://localhost:${PORT}
