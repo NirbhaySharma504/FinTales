@@ -85,7 +85,7 @@ npm install
 npm run dev
  ⁠
 
-This will start the frontend server at ⁠ http://localhost:3000/ ⁠ (or whichever port Vite specifies).
+This will start the frontend server.
 
 ---
 
@@ -117,16 +117,6 @@ python web_server.py
  ⁠
 
 This starts the Python server for handling novel, quiz, and summary generation requests. Ensure your backend is configured to communicate with this service.
-
----
-
-### ✅ Summary of Dev URLs
-
-| Service        | URL                          |
-|----------------|------------------------------|
-| Frontend       | ⁠ http://localhost:3000/ ⁠     |
-| Backend API    | ⁠ http://localhost:3001/ ⁠     |
-| GenAI Service  | ⁠ http://localhost:8000/ ⁠     |
 
 ---
 
