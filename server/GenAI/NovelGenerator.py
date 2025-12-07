@@ -3,15 +3,24 @@ import json
 import io
 import datetime, traceback
 import mimetypes
-import random,logging
+import random
+import logging
 from PIL import Image
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from pydantic import BaseModel, Field
+from google.genai.errors import ClientError
+from pydantic import BaseModel, Field, ValidationError
 from typing import List, Dict, Optional
 import cloudinary
 import cloudinary.uploader
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API")
@@ -74,37 +83,89 @@ class GameState(BaseModel):
 
 class FinancialNovelGenerator:
     def __init__(self):
-        self.game_state = GameState()
-        self.client = genai.Client(api_key=API_KEY)
-        self.create_asset_directories()
-        self.user_data_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
-                                         "server", "GenAI", "interests.json")
-        self.load_user_data()
+        try:
+            if not API_KEY:
+                raise ValueError("GEMINI_API environment variable is not set")
+            
+            self.game_state = GameState()
+            self.client = genai.Client(api_key=API_KEY)
+            self.create_asset_directories()
+            self.user_data_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
+                                             "server", "GenAI", "interests.json")
+            self.load_user_data()
+            logger.info("FinancialNovelGenerator initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize FinancialNovelGenerator: {e}")
+            logger.error(traceback.format_exc())
+            raise
 
     def load_user_data(self):
+        """Load user preferences from interests.json file"""
         try:
-            with open(self.user_data_path, 'r') as f:
+            if not os.path.exists(self.user_data_path):
+                logger.warning(f"User data file not found at {self.user_data_path}, using defaults")
+                self.game_state.selected_interest = {
+                    "category": "Comics & Anime",
+                    "interest": "Spider-Man"
+                }
+                return
+            
+            with open(self.user_data_path, 'r', encoding='utf-8') as f:
                 user_data = json.load(f)
                 self.game_state.user_data = user_data
-                interests = user_data["data"]["user"]["preferences"]["interests"]
-                if interests:
-                    self.game_state.selected_interest = self.select_random_interest(interests)
+                
+                # Safely extract interests
+                try:
+                    interests = user_data.get("data", {}).get("user", {}).get("preferences", {}).get("interests", {})
+                    if interests and isinstance(interests, dict):
+                        self.game_state.selected_interest = self.select_random_interest(interests)
+                        logger.info(f"Loaded user interests: {self.game_state.selected_interest}")
+                    else:
+                        raise ValueError("Invalid interests structure")
+                except (KeyError, TypeError, ValueError) as e:
+                    logger.warning(f"Error extracting interests from user data: {e}")
+                    raise
+                    
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in user data file: {e}")
+            self.game_state.selected_interest = {
+                "category": "Comics & Anime",
+                "interest": "Spider-Man"
+            }
+        except FileNotFoundError:
+            logger.warning(f"User data file not found, using defaults")
+            self.game_state.selected_interest = {
+                "category": "Comics & Anime",
+                "interest": "Spider-Man"
+            }
         except Exception as e:
-            print(f"Error loading user data: {e}")
+            logger.error(f"Unexpected error loading user data: {e}")
+            logger.error(traceback.format_exc())
             # Set default interest if loading fails
             self.game_state.selected_interest = {
                 "category": "Comics & Anime",
                 "interest": "Spider-Man"
             }
     def create_asset_directories(self):
-        dirs = [
-            os.path.join("output", "stories"),
-            os.path.join("output", "images", "characters"),
-            os.path.join("output", "images", "backgrounds"),
-            os.path.join("output", "temp")
-        ]
-        for directory in dirs:
-            os.makedirs(directory, exist_ok=True)
+        """Create necessary directories for output files"""
+        try:
+            dirs = [
+                os.path.join("output", "stories"),
+                os.path.join("output", "images", "characters"),
+                os.path.join("output", "images", "backgrounds"),
+                os.path.join("output", "temp")
+            ]
+            for directory in dirs:
+                try:
+                    os.makedirs(directory, exist_ok=True)
+                except OSError as e:
+                    logger.error(f"Failed to create directory {directory}: {e}")
+                    raise
+            logger.debug("Asset directories created successfully")
+        except Exception as e:
+            logger.error(f"Error creating asset directories: {e}")
+            logger.error(traceback.format_exc())
+            raise
 
     def select_random_interest(self, interests: Dict) -> Dict[str, str]:
         """Select random category and interest from user preferences"""
@@ -120,21 +181,45 @@ class FinancialNovelGenerator:
         return {"category": category, "interest": interest}
 
     def upload_to_cloudinary(self, image: Image, folder: str, public_id: str) -> str:
+        """Upload image to Cloudinary with error handling"""
+        if not image:
+            raise ValueError("Image cannot be None")
+        
         sanitized_id = public_id.lower().replace(' ', '_').replace('&', 'and')
         sanitized_id = ''.join(c for c in sanitized_id if c.isalnum() or c == '_')
         
         temp_path = f"temp_{sanitized_id}.png"
-        image.save(temp_path)
         
-        result = cloudinary.uploader.upload(
-            temp_path,
-            folder=f"financial_novel/{folder}",
-            public_id=sanitized_id,
-            overwrite=True
-        )
-        
-        os.remove(temp_path)
-        return result['secure_url']
+        try:
+            image.save(temp_path)
+            
+            try:
+                result = cloudinary.uploader.upload(
+                    temp_path,
+                    folder=f"financial_novel/{folder}",
+                    public_id=sanitized_id,
+                    overwrite=True
+                )
+                
+                if not result or 'secure_url' not in result:
+                    raise ValueError("Invalid response from Cloudinary")
+                
+                return result['secure_url']
+            except Exception as e:
+                logger.error(f"Cloudinary upload error: {e}")
+                raise
+            finally:
+                # Always clean up temp file
+                try:
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+                except OSError as e:
+                    logger.warning(f"Failed to remove temp file {temp_path}: {e}")
+                    
+        except Exception as e:
+            logger.error(f"Error saving/uploading image: {e}")
+            logger.error(traceback.format_exc())
+            raise
 
     def generate_story_segment(self) -> StoryData:
         topic = self.game_state.selected_concept["topic"]
@@ -149,94 +234,137 @@ class FinancialNovelGenerator:
         - Topic : {topic}
         - Subtopic : {subtopic}
         - Difficulty: {self.game_state.difficulty}
-        -If Difficulty is beginner, then assume you want to teach the concept to a kid of age 10-12 age, if it
+        - If Difficulty is beginner, then assume you want to teach the concept to a kid of age 10-12 age, if it
         is intermediate, then assume you want to teach the concept to someone with age of 12-14 age and
         it is advanced, then assume you want to teach the concept to someone with age of 14-16 age.
         Based on this, the story should be designed with the intention to deliver the complete concept.
         - Interest Area: {selected_interest['category']} 
         - Character/Reference: {selected_interest['interest']}
-        - Create 5 slides minimum for the complete story (Dont make it less than 5 slides, thus we will have story situation will 5 dialogues atleast)
-
-         
+        - Create 5 slides minimum for the complete story (Don't make it less than 5 slides, thus we will have story situation with 5 dialogues at least)
 
         Follow this structure exactly and return valid JSON:
         {{
             "plot": {{
-                "title": "The {selected_interest['interest']}'s Savings Challenge",
-                "setup": "In a world of {selected_interest['category']}, {selected_interest['interest']} needs to save $1,000 for {{specific_goal}}",
+                "title": "The {selected_interest['interest']}'s {subtopic} Journey",
+                "setup": "In a world of {selected_interest['category']}, {selected_interest['interest']} needs to learn about {subtopic}. The story should explain {subtopic} in a way that is engaging and educational for the target age group.",
                 "locations": {{
                     "primary": "Main setting from {selected_interest['category']} where financial planning happens",
-                    "secondary": "A place where the character faces spending temptations",
-                    "tertiary": "Final location where savings goal is achieved"
+                    "secondary": "A place where the character faces financial challenges or decisions",
+                    "tertiary": "Final location where the financial concept is understood and applied"
                 }}
             }},
             "dialogue": [
                 {{
                     "character": "{selected_interest['interest']}",
-                    "text": "I need to save $200 each month to reach my goal. That means cutting down my daily spending from $5 to $2.",
-                    "hint": "Break down big financial goals into smaller, manageable amounts"
+                    "text": "I need to understand {subtopic} better. Let me break this down step by step.",
+                    "hint": "Break down complex financial concepts into manageable parts"
+                }},
+                {{
+                    "character": "{selected_interest['interest']}",
+                    "text": "This makes sense now! I can apply this to my own situation.",
+                    "hint": "Connect financial concepts to real-world applications"
                 }}
             ],
             "visuals": {{
                 "characters": [
                     {{
                         "name": "{selected_interest['interest']}",
-                        "description": "Character shown interacting with a savings tracking app/piggy bank"
+                        "description": "Character shown learning and applying financial concepts, with visual aids like charts, apps, or physical representations of money"
                     }}
                 ],
                 "backgrounds": [
                     {{
                         "name": "Primary Location",
-                        "description": "Main setting with financial planning elements",
+                        "description": "Main setting with financial planning elements, educational tools, and visual aids",
                         "type": "primary"
                     }},
                     {{
                         "name": "Secondary Location",
-                        "description": "Location showing spending temptations",
+                        "description": "Location showing financial challenges or decision-making scenarios",
                         "type": "secondary"
                     }},
                     {{
                         "name": "Tertiary Location",
-                        "description": "Achievement celebration setting",
+                        "description": "Achievement or understanding celebration setting where concepts are mastered",
                         "type": "tertiary"
                     }}
                 ],
-                "financial_elements": "Visual representation of the $1,000 savings goal with weekly/monthly milestones"
+                "financial_elements": "Visual representation of {subtopic} concepts with clear examples, charts, or interactive elements that help explain the financial topic"
             }},
             "hooks": {{
-                "pop_culture": "Reference to {selected_interest['category']}",
-                "music": "Theme of determination and growth"
+                "pop_culture": "Reference to {selected_interest['category']} that makes the story relatable",
+                "music": "Theme of learning, growth, and financial empowerment"
             }}
         }}
         """
 
         try:
-            response = self.client.models.generate_content(
-                model='gemini-1.5-flash',
-                contents=prompt_template,
-            )
+            logger.info(f"Generating story for topic: {topic}, subtopic: {subtopic}")
             
-            story_data = self._parse_response(response.text)
-            validated_story = StoryData(**story_data)
-            
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            self.generate_all_images_for_story(validated_story, timestamp)
-            
-            return validated_story
-            
+            # Make API call with error handling
+            try:
+                response = self.client.models.generate_content(
+                    model='gemini-2.0-flash-001',
+                    contents=prompt_template,
+                )
+                
+                if not response or not hasattr(response, 'text') or not response.text:
+                    raise ValueError("Invalid or empty response from API")
+                
+                story_data = self._parse_response(response.text)
+                validated_story = StoryData(**story_data)
+                
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                
+                # Generate images (this may fail but shouldn't stop story generation)
+                try:
+                    self.generate_all_images_for_story(validated_story, timestamp)
+                except Exception as img_error:
+                    logger.warning(f"Image generation failed, continuing with story: {img_error}")
+                    # Continue without images
+                
+                logger.info(f"Successfully generated story: {validated_story.plot.title}")
+                return validated_story
+                
+            except ClientError as e:
+                error_code = getattr(e, 'status_code', 'UNKNOWN')
+                error_message = str(e)
+                logger.error(f"Gemini API error (code: {error_code}): {error_message}")
+                
+                if error_code == 429:
+                    logger.error("Rate limit exceeded for story generation")
+                elif error_code == 401:
+                    logger.error("API key invalid or expired")
+                elif error_code == 400:
+                    logger.error("Invalid request to API")
+                
+                raise ValueError(f"API request failed: {error_message}")
+                
+        except ValidationError as e:
+            logger.error(f"Pydantic validation error: {e}")
+            logger.error(traceback.format_exc())
+        except ValueError as e:
+            logger.error(f"Value error in story generation: {e}")
+            logger.error(traceback.format_exc())
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parsing error: {e}")
+            logger.error(traceback.format_exc())
         except Exception as e:
-            print(f"Error generating story: {e}")
-            traceback.print_exc()
-            return StoryData(
-                plot=Plot(
-                    title="Error", 
-                    setup="Error generating story", 
-                    locations={"primary": "Error", "secondary": "Error", "tertiary": "Error"}
-                ),
-                dialogue=[],
-                visuals=Visuals(characters=[], backgrounds=[], financial_elements=""),
-                hooks=Hooks(pop_culture="", music="")
-            )
+            logger.error(f"Unexpected error generating story: {e}")
+            logger.error(traceback.format_exc())
+        
+        # Return error story on failure
+        logger.warning("Returning error story due to generation failure")
+        return StoryData(
+            plot=Plot(
+                title="Error Generating Story", 
+                setup="We encountered an error while generating your story. Please try again.", 
+                locations={"primary": "Error", "secondary": "Error", "tertiary": "Error"}
+            ),
+            dialogue=[],
+            visuals=Visuals(characters=[], backgrounds=[], financial_elements=""),
+            hooks=Hooks(pop_culture="", music="")
+        )
 
 
         
@@ -274,24 +402,42 @@ class FinancialNovelGenerator:
         
         # Generate and upload character images
         for character in story_data.visuals.characters[:5]:
-            print(f"Generating image for character: {character.name}")
-            character_image = self.generate_character_image(
-                character.name, 
-                character.description
-            )
-            if character_image:
-                char_id = f"{character.name.lower().replace(' ', '')}{timestamp}"
-                char_url = self.upload_to_cloudinary(character_image, "characters", char_id)
-                image_paths["characters"][character.name] = char_url
+            try:
+                logger.info(f"Generating image for character: {character.name}")
+                character_image = self.generate_character_image(
+                    character.name, 
+                    character.description
+                )
+                if character_image:
+                    char_id = f"{character.name.lower().replace(' ', '')}{timestamp}"
+                    try:
+                        char_url = self.upload_to_cloudinary(character_image, "characters", char_id)
+                        image_paths["characters"][character.name] = char_url
+                    except Exception as e:
+                        logger.error(f"Failed to upload character image for {character.name}: {e}")
+                else:
+                    logger.warning(f"Failed to generate image for character: {character.name}")
+            except Exception as e:
+                logger.error(f"Error processing character {character.name}: {e}")
+                continue
         
         # Generate and upload background images for each type
         for bg in story_data.visuals.backgrounds:
-            print(f"Generating {bg.type} background: {bg.name}")
-            bg_image = self.generate_background_image(bg.name, bg.description, bg.type)
-            if bg_image:
-                bg_id = f"{bg.type}{bg.name.lower().replace(' ', '')}_{timestamp}"
-                bg_url = self.upload_to_cloudinary(bg_image, "backgrounds", bg_id)
-                image_paths["backgrounds"][bg.type] = bg_url
+            try:
+                logger.info(f"Generating {bg.type} background: {bg.name}")
+                bg_image = self.generate_background_image(bg.name, bg.description, bg.type)
+                if bg_image:
+                    bg_id = f"{bg.type}{bg.name.lower().replace(' ', '')}_{timestamp}"
+                    try:
+                        bg_url = self.upload_to_cloudinary(bg_image, "backgrounds", bg_id)
+                        image_paths["backgrounds"][bg.type] = bg_url
+                    except Exception as e:
+                        logger.error(f"Failed to upload background image for {bg.name}: {e}")
+                else:
+                    logger.warning(f"Failed to generate background image: {bg.name}")
+            except Exception as e:
+                logger.error(f"Error processing background {bg.name}: {e}")
+                continue
         
         # Update story data with image paths
         story_data.generated_images = image_paths
@@ -383,9 +529,15 @@ class FinancialNovelGenerator:
 
             return None
 
+        except ClientError as e:
+            error_code = getattr(e, 'status_code', 'UNKNOWN')
+            logger.error(f"Gemini API error generating {image_type} (code: {error_code}): {e}")
+            if error_code == 429:
+                logger.warning("Rate limit exceeded for image generation")
+            return None
         except Exception as e:
-            print(f"Error generating {image_type} image: {e}")
-            traceback.print_exc()
+            logger.error(f"Error generating {image_type} image: {e}")
+            logger.error(traceback.format_exc())
             return None
         
     def generate_story_cover(self, story_data: StoryData) -> Optional[Image.Image]:
@@ -407,33 +559,53 @@ class FinancialNovelGenerator:
         return self._generate_image(prompt, "story_cover")
 
     def _parse_response(self, response_text: str) -> dict:
-        """Parse and validate the JSON response"""
+        """Parse and validate the JSON response with multiple fallback strategies"""
+        if not response_text or not response_text.strip():
+            logger.error("Empty response from API")
+            raise ValueError("Empty response from API")
+        
+        # Strategy 1: Direct JSON parsing
         try:
             data = json.loads(response_text)
-            return StoryData(**data).dict()
-        except json.JSONDecodeError:
-            cleaned = response_text.replace('json', '').replace('', '').strip()
+            validated = StoryData(**data)
+            return validated.model_dump() if hasattr(validated, 'model_dump') else validated.dict()
+        except (json.JSONDecodeError, ValidationError) as e:
+            logger.debug(f"Direct JSON parse failed: {e}")
+        
+        # Strategy 2: Clean markdown and try again
+        cleaned = response_text.replace('```json', '').replace('```', '').replace('json', '').strip()
+        try:
+            data = json.loads(cleaned)
+            validated = StoryData(**data)
+            return validated.model_dump() if hasattr(validated, 'model_dump') else validated.dict()
+        except (json.JSONDecodeError, ValidationError) as e:
+            logger.debug(f"Cleaned JSON parse failed: {e}")
+        
+        # Strategy 3: Extract JSON between braces
+        start_idx = cleaned.find('{')
+        end_idx = cleaned.rfind('}') + 1
+        if start_idx >= 0 and end_idx > start_idx:
+            json_content = cleaned[start_idx:end_idx]
             try:
-                data = json.loads(cleaned)
-                return StoryData(**data).dict()
-            except:
-                start_idx = cleaned.find('{')
-                end_idx = cleaned.rfind('}') + 1
-                if start_idx >= 0 and end_idx > start_idx:
-                    json_content = cleaned[start_idx:end_idx]
-                    data = json.loads(json_content)
-                    return StoryData(**data).dict()
+                data = json.loads(json_content)
+                validated = StoryData(**data)
+                return validated.model_dump() if hasattr(validated, 'model_dump') else validated.dict()
+            except (json.JSONDecodeError, ValidationError) as e:
+                logger.debug(f"Extracted JSON parse failed: {e}")
                 
-                return StoryData(
+        # All parsing strategies failed
+        logger.error(f"Failed to parse JSON response: {response_text[:200]}...")
+        error_story = StoryData(
                     plot=Plot(
                         title="Parsing Error", 
-                        setup="Error in story generation", 
+                setup="Error parsing story response from API", 
                         locations={"primary": "Error", "secondary": "Error", "tertiary": "Error"}
                     ),
                     dialogue=[],
                     visuals=Visuals(characters=[], backgrounds=[], financial_elements=""),
                     hooks=Hooks(pop_culture="", music="")
-                ).dict()
+        )
+        return error_story.model_dump() if hasattr(error_story, 'model_dump') else error_story.dict()
 
     def save_to_json(self, data: StoryData, filename: str) -> str:
         """Save story data to JSON"""

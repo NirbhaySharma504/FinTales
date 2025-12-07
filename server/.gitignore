@@ -45,4 +45,5 @@ Thumbs.db
 
 # Firebase
 firebase-debug.log
-firebase-debug.*.log
+firebase-debug.*.logserver/GenAI/**/__pycache__/
+server/GenAI/**/*.pyc

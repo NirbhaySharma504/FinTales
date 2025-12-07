@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os, uuid, json, sys
 from typing import Dict, Optional
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn, traceback
 from pydantic import BaseModel
@@ -39,6 +39,16 @@ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 class StoryRequest(BaseModel):
     difficulty: Optional[str] = "beginner"
+
+class QuizRequest(BaseModel):
+    story_data: Optional[Dict] = None
+    story_id: Optional[str] = None  # If provided, will use cached story
+    difficulty: Optional[str] = "beginner"
+
+class SummaryRequest(BaseModel):
+    story_data: Optional[Dict] = None
+    story_id: Optional[str] = None  # If provided, will use cached story
+    selected_interest: Optional[Dict] = None
 
 @app.get("/")
 async def root():
@@ -107,27 +117,54 @@ async def generate_story(request: StoryRequest):
         raise HTTPException(status_code=500, detail=f"Story generation failed: {str(e)}")
 
 @app.post("/api/generate-quiz")
-async def generate_quiz(request: Request):
+async def generate_quiz(request: QuizRequest):
     try:
-        body = await request.json()
-        story_data = body.get("story_data", {})
-        difficulty = body.get("difficulty", "beginner")
+        # Get story_data from cache if story_id is provided, otherwise use provided story_data
+        if request.story_id:
+            if request.story_id not in story_cache:
+                raise HTTPException(status_code=404, detail=f"Story with ID {request.story_id} not found in cache")
+            story_data = story_cache[request.story_id]
+        elif request.story_data:
+            story_data = request.story_data
+        else:
+            # Try to use latest story if available
+            if not story_cache:
+                raise HTTPException(status_code=400, detail="No story_data provided and no cached stories available. Either provide story_data or story_id, or generate a story first using /api/generate")
+            latest_id = list(story_cache.keys())[-1]
+            story_data = story_cache[latest_id]
         
-        quiz = quiz_generator.generate_quiz(story_data, difficulty)
+        quiz = quiz_generator.generate_quiz(story_data, request.difficulty)
         return quiz.dict() if hasattr(quiz, 'dict') else quiz.model_dump()
+    except HTTPException:
+        raise
     except Exception as e:
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error generating quiz: {str(e)}")
 
 @app.post("/api/generate-summary")
-async def generate_summary(request: Request):
+async def generate_summary(request: SummaryRequest):
     try:
-        body = await request.json()
-        story_data = body.get("story_data", {})
-        selected_interest = body.get("selected_interest", None)
+        # Get story_data from cache if story_id is provided, otherwise use provided story_data
+        if request.story_id:
+            if request.story_id not in story_cache:
+                raise HTTPException(status_code=404, detail=f"Story with ID {request.story_id} not found in cache")
+            story_data = story_cache[request.story_id]
+        elif request.story_data:
+            story_data = request.story_data
+        else:
+            # Try to use latest story if available
+            if not story_cache:
+                raise HTTPException(status_code=400, detail="No story_data provided and no cached stories available. Either provide story_data or story_id, or generate a story first using /api/generate")
+            latest_id = list(story_cache.keys())[-1]
+            story_data = story_cache[latest_id]
+            # Also get selected_interest from generator state if not provided
+            if not request.selected_interest:
+                request.selected_interest = generator.game_state.selected_interest
         
-        summary = summarizer.generate_summary(story_data, selected_interest)
+        summary = summarizer.generate_summary(story_data, request.selected_interest)
         return summary
+    except HTTPException:
+        raise
     except Exception as e:
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error generating summary: {str(e)}")
@@ -145,15 +182,28 @@ async def get_story(story_id: str):
 
 @app.get("/api/latest-story")
 async def get_latest_story():
-    if not story_cache:
-        raise HTTPException(status_code=404, detail="No stories available")
-    latest_id = list(story_cache.keys())[-1]
-    return {
-        "success": True, 
-        "story": story_cache[latest_id],
-        "quiz": quiz_cache.get(latest_id),
-        "summary": summary_cache.get(latest_id)
-    }
+    try:
+        if not story_cache:
+            return {
+                "success": False,
+                "error": "No stories available",
+                "message": "Please generate a story first using /api/generate",
+                "cached_stories_count": 0
+            }
+        
+        latest_id = list(story_cache.keys())[-1]
+        
+        return {
+            "success": True, 
+            "storyId": latest_id,
+            "story": story_cache[latest_id],
+            "quiz": quiz_cache.get(latest_id),
+            "summary": summary_cache.get(latest_id),
+            "cached_stories_count": len(story_cache)
+        }
+    except Exception as e:
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error retrieving latest story: {str(e)}")
 
 @app.get("/api/stories")
 async def list_stories():
