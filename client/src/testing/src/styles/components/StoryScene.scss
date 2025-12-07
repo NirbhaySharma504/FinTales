@@ -1,0 +1,54 @@
+// StoryScene.scss
+.story-scene {
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.story-scene h1 {
+    font-size: 2rem;
+    color: #333;
+}
+
+.story-scene p {
+    font-size: 1rem;
+    color: #666;
+}
+
+.story-scene .character {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.story-scene .character img {
+    width: 100px;
+    height: auto;
+    margin-right: 15px;
+}
+
+.story-scene .dialogue {
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.story-scene .options {
+    margin-top: 15px;
+}
+
+.story-scene .options button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.story-scene .options button:hover {
+    background-color: #0056b3;
+}

@@ -1,0 +1,60 @@
+// StoryLibrary.scss
+// Styles for the StoryLibrary component
+
+.story-library {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+.story-library__title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.story-library__list {
+    list-style-type: none;
+    padding: 0;
+    width: 100%;
+}
+
+.story-library__item {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin: 10px 0;
+    padding: 15px;
+    transition: box-shadow 0.3s;
+}
+
+.story-library__item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.story-library__item-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.story-library__item-description {
+    font-size: 1rem;
+    color: #666;
+}
+
+.story-library__item-button {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.story-library__item-button:hover {
+    background-color: #0056b3;
+}

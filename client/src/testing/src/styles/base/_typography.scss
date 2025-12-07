@@ -1,0 +1,44 @@
+// Typography styles for the application
+$font-stack: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+$primary-font-size: 16px;
+$secondary-font-size: 14px;
+$heading-font-size: 24px;
+$line-height: 1.5;
+
+body {
+    font-family: $font-stack;
+    font-size: $primary-font-size;
+    line-height: $line-height;
+    color: #333;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: $font-stack;
+    line-height: 1.2;
+    margin: 0;
+}
+
+h1 {
+    font-size: $heading-font-size;
+}
+
+h2 {
+    font-size: $heading-font-size - 2px;
+}
+
+h3 {
+    font-size: $heading-font-size - 4px;
+}
+
+p {
+    margin: 0 0 1em;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

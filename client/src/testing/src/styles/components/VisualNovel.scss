@@ -1,0 +1,40 @@
+// VisualNovel.scss
+$visual-novel-bg-color: #f0f0f0;
+$visual-novel-text-color: #333;
+$visual-novel-font-family: 'Arial', sans-serif;
+
+.visual-novel {
+    background-color: $visual-novel-bg-color;
+    color: $visual-novel-text-color;
+    font-family: $visual-novel-font-family;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.visual-novel__title {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.visual-novel__content {
+    font-size: 1.2rem;
+    line-height: 1.5;
+}
+
+.visual-novel__choices {
+    margin-top: 20px;
+}
+
+.visual-novel__choice {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+
+    &:hover {
+        background-color: #0056b3;
+    }
+}

@@ -1,0 +1,43 @@
+// StoryCreator.scss
+$story-creator-background: #f9f9f9;
+$story-creator-border: #e0e0e0;
+$story-creator-text-color: #333;
+$story-creator-padding: 20px;
+$story-creator-margin: 15px;
+
+.story-creator {
+    background-color: $story-creator-background;
+    border: 1px solid $story-creator-border;
+    color: $story-creator-text-color;
+    padding: $story-creator-padding;
+    margin: $story-creator-margin;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.story-creator h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.story-creator p {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.story-creator .input-field {
+    margin-bottom: 10px;
+}
+
+.story-creator .submit-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.story-creator .submit-button:hover {
+    background-color: #0056b3;
+}
