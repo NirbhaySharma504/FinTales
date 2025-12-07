@@ -8,7 +8,7 @@ This document provides a comprehensive overview of all test cases in the FinTale
 - **Total Tests**: 47 passing, 1 skipped (unit + module)
 - **Unit Tests**: 44 tests (all passing)
 - **Module Tests**: 3 tests (all passing)
-- **Integration Tests**: 16 tests (15 passing, 1 failing - run separately)
+- **Integration Tests**: 16 tests (all passing - run separately)
 
 ---
 
@@ -353,9 +353,9 @@ pytest tests/ -m integration -v
 
 **Why run separately?**
 - They test the full API stack (slower execution)
-- They may have some failures that need fixing
 - They can be run independently for focused API testing
 - The standard test suite focuses on fast unit/module tests
+- All 16 integration tests are now passing ✅
 
 #### Class: `TestAPIEndpoints`
 
@@ -427,6 +427,7 @@ pytest tests/ -m integration -v
 15. **`test_generate_quiz_endpoint_validation_error`**
     - **Purpose**: Tests validation error handling
     - **Checks**: Returns 500 for validation errors
+    - **Note**: Fixed to use invalid but non-empty story_data (empty dict is falsy and returns 400 before reaching generator)
 
 16. **`test_generate_quiz_endpoint_invalid_story_id`**
     - **Purpose**: Tests handling of invalid story ID
@@ -582,13 +583,13 @@ open htmlcov/index.html
 **Current Status**: 
 - ✅ **Unit Tests**: 44/44 passing
 - ✅ **Module Tests**: 3/3 passing  
-- ⚠️ **Integration Tests**: 15/16 passing, 1 failing (run separately)
+- ✅ **Integration Tests**: 16/16 passing (run separately)
 - ⏭️ **Skipped Tests**: 1 (end-to-end with real API)
 
 **Standard Test Suite** (unit + module): 47 passing, 1 skipped
-**Integration Tests** (run separately): 15 passing, 1 failing
+**Integration Tests** (run separately): 16 passing ✅
 
-**Note**: Integration tests are not included in the standard `pytest tests/` run to keep the test suite fast. They can be run separately when needed.
+**Note**: Integration tests are not included in the standard `pytest tests/` run to keep the test suite fast. They can be run separately when needed. All integration tests are now passing after fixing the validation error test.
 
 ---
 
