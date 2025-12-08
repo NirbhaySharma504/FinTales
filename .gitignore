@@ -8,3 +8,13 @@ server/finquest-5f55e-firebase-adminsdk-fbsvc-7b9f17e165.json
 .env.local
 .env.development
 .env.production
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Python virtual environments
+venv/
+env/
+ENV/
+.venv/
